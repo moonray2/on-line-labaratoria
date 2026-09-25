@@ -1,0 +1,6 @@
+/* Локальный архив черновиков в браузере (IndexedDB). */
+const DB_NAME='MetallTestLab',STORE_NAME='protocols';
+function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains(STORE_NAME))req.result.createObjectStore(STORE_NAME,{keyPath:'id',autoIncrement:true});};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);});}
+async function saveToCloud(protocol){const db=await openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).add({date:new Date().toISOString(),protocol});tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close();alert('Черновик сохранён локально в этом браузере.');}
+async function loadAllProtocols(){const db=await openDB();return new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readonly'),req=tx.objectStore(STORE_NAME).getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);tx.oncomplete=()=>db.close();});}
+async function clearProtocols(){const db=await openDB();await new Promise((resolve,reject)=>{const tx=db.transaction(STORE_NAME,'readwrite');tx.objectStore(STORE_NAME).clear();tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close();}
